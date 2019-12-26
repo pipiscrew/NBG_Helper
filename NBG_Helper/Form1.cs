@@ -42,39 +42,72 @@ namespace NBG_Helper
 
         private void button1_Click(object sender, EventArgs e)
         {
-            MatchCollection match;
+            toolStripDropDownButton1.Visible = false;
+
             string p = General.GetFromClipboard();
 
-            toolStripDropDownButton1.Visible = false;
-            //** EXPENSES ** [START]
 
-            //Αγορά ποσού 5,20 EUR από  (defalt = 0)
-            string pattern = @"Αγορά ποσού(.*?)από(.*?)με χρήση(.*?)\*(.*?)\s(.*?)\s";
+            if (p.StartsWith("Α/Α;Ημ/νία"))
+            {
+                //////////////
+                // ALPHA //
+                //////////////
+                int errors;
+                DataTable dt = General.ImportDelimited(p, ";", true, out errors);
 
-            //Μεταφορά ποσού 150,00 EUR από τον λογ/σμό  (68 = sent money + prepaid recharge)
-            string pattern2 = @"Μεταφορά ποσού(.*?)από(.*?)τον(.*?)\*(.*?)\s(.*?)\s";
+                string amount;
+                foreach (DataRow r in dt.Rows)
+                {
+                    //if (r[7].ToString().Trim()== "Π")
+                    //    amount = r[6].ToString();
+                    //else
+                    //    amount = "-" +r[6].ToString();
 
-            //Ανάληψη μετρητών ποσού 50,00 EUR από τον λογ/σμό  (20 = ATM withdrawal)
-            string pattern3 = @"Ανάληψη μετρητών ποσού(.*?)από(.*?)τον(.*?)\*(.*?)\s(.*?)\s";
+                    //string[] row = new string[] { r[4].ToString(), r[2].ToString(), amount, "", };
+
+                    add_alpha_transcaton(r[4].ToString(), r[2].ToString(), r[6].ToString(), r[3].ToString(), r[7].ToString()); // dg.Rows.Add(row);
+                }
+
+                if (errors > 0)
+                    MessageBox.Show(errors.ToString() + " rows(s) discarded", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+
+            }
+            else
+            {   //////////////
+                // NBG //
+                //////////////
+
+                MatchCollection match;
+
+                //** EXPENSES ** [START]
+
+                //Αγορά ποσού 5,20 EUR από  (defalt = 0)
+                string pattern = @"Αγορά ποσού(.*?)από(.*?)με χρήση(.*?)\*(.*?)\s(.*?)\s";
+
+                //Μεταφορά ποσού 150,00 EUR από τον λογ/σμό  (68 = sent money + prepaid recharge)
+                string pattern2 = @"Μεταφορά ποσού(.*?)από(.*?)τον(.*?)\*(.*?)\s(.*?)\s";
+
+                //Ανάληψη μετρητών ποσού 50,00 EUR από τον λογ/σμό  (20 = ATM withdrawal)
+                string pattern3 = @"Ανάληψη μετρητών ποσού(.*?)από(.*?)τον(.*?)\*(.*?)\s(.*?)\s";
 
 
 
-            match = Regex.Matches(p, pattern, RegexOptions.IgnoreCase);
-            clipboard_translate_transcation(match, true, 0);
+                match = Regex.Matches(p, pattern, RegexOptions.IgnoreCase);
+                clipboard_translate_transcation(match, true, 0);
 
-            match = Regex.Matches(p, pattern2, RegexOptions.IgnoreCase);
-            clipboard_translate_transcation(match, true, 68);
+                match = Regex.Matches(p, pattern2, RegexOptions.IgnoreCase);
+                clipboard_translate_transcation(match, true, 68);
 
-            match = Regex.Matches(p, pattern3, RegexOptions.IgnoreCase);
-            clipboard_translate_transcation(match, true, 20);
-            //** EXPENSES ** [END]
+                match = Regex.Matches(p, pattern3, RegexOptions.IgnoreCase);
+                clipboard_translate_transcation(match, true, 20);
+                //** EXPENSES ** [END]
 
 
-            //** INCOME ** [START]
-            string pattern4 = @"Μεταφορά ποσού(.*?)στο(.*?)λογ(.*?)\*(.*?)\s(.*?)\s";
-            match = Regex.Matches(p, pattern4, RegexOptions.IgnoreCase);
-            clipboard_translate_transcation(match, false, 64);
-
+                //** INCOME ** [START]
+                string pattern4 = @"Μεταφορά ποσού(.*?)στο(.*?)λογ(.*?)\*(.*?)\s(.*?)\s";
+                match = Regex.Matches(p, pattern4, RegexOptions.IgnoreCase);
+                clipboard_translate_transcation(match, false, 64);
+            }
 
             format_grid();
 
@@ -111,6 +144,35 @@ namespace NBG_Helper
 
         }
 
+
+        private void add_alpha_transcaton(string dat, string descr, string amount, string shop, string transaction_type)
+        {
+            DataGridViewRow dr;
+
+            dr = new DataGridViewRow();
+
+            dr.DefaultCellStyle = cell_style;
+
+            dr.CreateCells(dg, dat, descr, (transaction_type != "Π" ? "-" : "") + amount);
+
+            //
+            if (transaction_type == "Π")
+            {
+                colorize_cells(dr, Color.FromArgb(222, 242, 219));
+            }
+            else if (shop == "96")
+            {
+                //shop
+                //99 = POS
+                //96 = TRANSFER
+
+                colorize_cells(dr, Color.FromArgb(245, 219, 219));
+            }
+
+            dg.Rows.Add(dr);
+
+        }
+
         private void add_transcaton(string dat, string descr, string amount, int transaction_no)
         {
             DataGridViewRow dr;
@@ -131,7 +193,7 @@ namespace NBG_Helper
                  * 68 = sent money + prepaid recharge 
                  * 
                  */
-                toolStripDropDownButton1.Visible = true;
+                //toolStripDropDownButton1.Visible = true;
 
                 if (transaction_no == 68)
                     colorize_cells(dr, Color.FromArgb(245, 219, 219));
@@ -147,6 +209,7 @@ namespace NBG_Helper
 
         private void colorize_cells(DataGridViewRow dr, Color c)
         {
+            toolStripDropDownButton1.Visible = true;
             dr.Cells[0].Style.BackColor = dr.Cells[1].Style.BackColor = dr.Cells[2].Style.BackColor = c;
         }
 
@@ -283,12 +346,28 @@ namespace NBG_Helper
 
                 toolStripDropDownButton1.Visible = false;
 
-                foreach (DataRow item in dt.Rows)
+                if (dt.Columns.Count == 8)
                 {
-                    add_transcaton(item["Ημερομηνία"].ToString(),
-                                        item["Περιγραφή"].ToString(),
-                                        item["Ποσό"].ToString(),
-                                        int.Parse(item["Συναλλαγή"].ToString()));
+                    for (int i = 0; i < 4; i++)
+                    {
+                        dt.Rows.RemoveAt(0);
+                    }
+
+
+                    foreach (DataRow r in dt.Rows)
+                    {
+                        add_alpha_transcaton(r[4].ToString(), r[2].ToString(), r[6].ToString(), r[3].ToString(), r[7].ToString());
+                    }
+                }
+                else
+                {
+                    foreach (DataRow item in dt.Rows)
+                    {
+                        add_transcaton(item["Ημερομηνία"].ToString(),
+                                            item["Περιγραφή"].ToString(),
+                                            item["Ποσό"].ToString(),
+                                            int.Parse(item["Συναλλαγή"].ToString()));
+                    }
                 }
 
 

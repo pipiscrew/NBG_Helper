@@ -6,5 +6,13 @@
 
 An application for [NBG account](https://nbg.gr) owners, help to identify in which category the money debited. Read the included PDF for instructions of how to use it
 
+v1.2<br>
++support for Alpha
+<br><br>
+v1.1<br>
++import csv<br>
++chart<br>
++transactions filter<br>
+
 
 Licensed under the [MIT license](http://www.opensource.org/licenses/mit-license.php).
