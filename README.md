@@ -1,5 +1,8 @@
 # NBG_Helper
 
+[![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/pipiscrew/NBG_Helper.svg)](https://github.com/pipiscrew/NBG_Helper/releases)
+[![GitHub All Releases](https://img.shields.io/github/downloads/pipiscrew/NBG_Helper/total.svg)](https://github.com/pipiscrew/NBG_Helper/releases)
+
 
 ![2019-08-18_225130](https://user-images.githubusercontent.com/3852762/63229598-b5a0bc80-c1f1-11e9-8012-fd143d6731ed.png)
 
